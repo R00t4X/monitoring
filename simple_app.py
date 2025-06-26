@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Упрощенная версия приложения мониторинга без сложных зависимостей.
 """
@@ -6,6 +7,7 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for, s
 import os
 import random
 import socket
+import sys  # Added missing import
 from datetime import datetime, timedelta
 import logging
 
@@ -19,10 +21,6 @@ logging.basicConfig(
     ]
 )
 
-# Создание экземпляра Flask приложения
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-
 # Безопасный импорт system_monitor
 try:
     from system_monitor import SystemMonitor
@@ -33,6 +31,13 @@ except ImportError as e:
     logging.warning(f"System monitor недоступен: {e}")
     SYSTEM_MONITOR_AVAILABLE = False
     system_monitor = None
+
+# Создание экземпляра Flask приложения
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Настройка Flask для правильной работы с UTF-8
+app.config['JSON_AS_ASCII'] = False
 
 # Данные серверов (упрощенная версия)
 servers_data = [
@@ -224,6 +229,52 @@ def admin_logout():
     flash('Вы вышли из системы', 'info')
     return redirect(url_for('index'))
 
+# Функция для проверки и предложения установки зависимостей
+def check_dependencies():
+    """Проверка зависимостей и предложение автоустановки"""
+    missing_critical = []
+    missing_optional = []
+    
+    # Проверяем критические зависимости
+    try:
+        import flask
+    except ImportError:
+        missing_critical.append('flask')
+    
+    # Проверяем опциональные зависимости
+    try:
+        import psutil
+    except ImportError:
+        missing_optional.append('psutil')
+    
+    try:
+        import cpuinfo
+    except ImportError:
+        missing_optional.append('py-cpuinfo')
+    
+    # Если отсутствуют критические зависимости - останавливаем
+    if missing_critical:
+        print("❌ ОТСУТСТВУЮТ КРИТИЧЕСКИЕ ЗАВИСИМОСТИ:")
+        for module in missing_critical:
+            print(f"   - {module}")
+        print("\n🔧 Для автоматической установки запустите:")
+        print("   python auto_install.py")
+        return False
+    
+    # Если отсутствуют только опциональные - предупреждаем но продолжаем
+    if missing_optional:
+        print("⚠️ ОТСУТСТВУЮТ ОПЦИОНАЛЬНЫЕ ЗАВИСИМОСТИ:")
+        for module in missing_optional:
+            print(f"   - {module}")
+        print("\n📋 Приложение будет работать с ограниченной функциональностью")
+        print("🔧 Для полной функциональности запустите: python auto_install.py")
+        print("📦 Или установите вручную: pip install " + " ".join(missing_optional))
+        print("\n⏳ Запуск через 3 секунды...")
+        import time
+        time.sleep(3)
+    
+    return True
+
 # Замена deprecated @app.before_first_request на современный подход
 app_initialized = False
 
@@ -233,6 +284,13 @@ def initialize_app():
     global app_initialized
     if not app_initialized:
         app_initialized = True
+        # Проверяем зависимости при первом запросе
+        if not check_dependencies():
+            return jsonify({
+                'error': 'Отсутствуют зависимости',
+                'solution': 'Запустите: python auto_install.py'
+            }), 500
+        
         # Инициализируем список серверов с локальной машиной
         update_servers_list()
         logging.info("Приложение инициализировано")
@@ -240,14 +298,25 @@ def initialize_app():
 # Обработчики ошибок
 @app.errorhandler(404)
 def not_found(error):
-    return jsonify({'error': 'Страница не найдена'}), 404
+    # Проверяем если это API запрос
+    if request.path.startswith('/api'):
+        return jsonify({'ошибка': 'Страница не найдена'}), 404
+    # Для обычных страниц возвращаем HTML
+    return render_template('404.html'), 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    return jsonify({'error': 'Внутренняя ошибка сервера'}), 500
+    if request.path.startswith('/api'):
+        return jsonify({'ошибка': 'Внутренняя ошибка сервера'}), 500
+    return render_template('500.html'), 500
 
 if __name__ == '__main__':
-    logging.info("Запуск упрощенного приложения мониторинга")
+    # Проверяем зависимости перед запуском
+    if not check_dependencies():
+        print("\n🛑 Запуск невозможен без критических зависимостей")
+        sys.exit(1)
+    
+    logging.info("Запуск системы мониторинга")
     
     # Получаем параметры запуска
     host = os.environ.get("HOST", "127.0.0.1")
@@ -256,5 +325,10 @@ if __name__ == '__main__':
     
     print(f"🚀 Запуск приложения мониторинга на {host}:{port}")
     print(f"🌐 Откройте браузер: http://{host}:{port}")
+    print("📊 Доступные разделы:")
+    print("   / - Главная страница")
+    print("   /servers - Мониторинг серверов")
+    print("   /system - Системный мониторинг")
+    print("   /admin - Админка (admin/admin123)")
     
     app.run(host=host, port=port, debug=debug)

@@ -1,24 +1,24 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash
+"""
+Основной файл приложения - перенаправляет на simple_app.py
+"""
+import sys
 import os
-import random
-import socket
-from datetime import datetime, timedelta
-import logging
-from functools import wraps
 
-# Безопасный импорт дополнительных модулей
-try:
-    from flask_socketio import SocketIO, emit
-    SOCKETIO_AVAILABLE = True
-except ImportError:
-    SOCKETIO_AVAILABLE = False
-    SocketIO = None
+# Добавляем текущую директорию в путь
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+print("⚠️ Использование app.py устарело. Запускайте simple_app.py")
+print("🔄 Перенаправление на simple_app.py...")
+
+# Импортируем и запускаем упрощенное приложение
 try:
-    from flask_sqlalchemy import SQLAlchemy
-    SQLALCHEMY_AVAILABLE = True
-except ImportError:
-    SQLALCHEMY_AVAILABLE = False
+    from simple_app import app
+    
+    if __name__ == '__main__':
+        app.run(host='127.0.0.1', port=5000, debug=True)
+except ImportError as e:
+    print(f"❌ Ошибка импорта: {e}")
+    print("📋 Убедитесь, что файл simple_app.py существует")
     SQLAlchemy = None
 
 # Безопасный импорт system_monitor
