@@ -135,3 +135,22 @@
 2025-06-26 22:01:51,551 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 2025-06-26 22:01:51,552 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-26 22:03:30,744 - INFO - System monitor загружен успешно
+2025-06-26 22:03:30,754 - INFO - Запуск системы мониторинга
+2025-06-26 22:03:30,757 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-26 22:03:30,757 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-26 22:03:52,854 - ERROR - Ошибка получения данных локальной машины: 'list' object has no attribute 'get'
+2025-06-26 22:03:52,855 - INFO - Приложение инициализировано
+2025-06-26 22:03:55,430 - ERROR - Ошибка получения системных метрик: Encountered unknown tag 'endif'.
+2025-06-26 22:03:55,437 - INFO - 127.0.0.1 - - [26/Jun/2025 22:03:55] "GET /system HTTP/1.1" 200 -
+2025-06-26 22:04:07,171 - ERROR - Ошибка получения данных локальной машины: 'list' object has no attribute 'get'
+2025-06-26 22:04:07,177 - INFO - 127.0.0.1 - - [26/Jun/2025 22:04:07] "GET / HTTP/1.1" 200 -
+2025-06-26 22:04:18,525 - ERROR - Ошибка получения данных локальной машины: 'list' object has no attribute 'get'
+2025-06-26 22:04:18,552 - INFO - 127.0.0.1 - - [26/Jun/2025 22:04:18] "GET /servers HTTP/1.1" 200 -
+2025-06-26 22:04:26,259 - ERROR - Ошибка получения данных локальной машины: 'list' object has no attribute 'get'
+2025-06-26 22:04:26,260 - INFO - 127.0.0.1 - - [26/Jun/2025 22:04:26] "GET /api/servers/update HTTP/1.1" 200 -
+2025-06-26 22:04:51,261 - ERROR - Ошибка получения данных локальной машины: 'list' object has no attribute 'get'
+2025-06-26 22:04:51,262 - INFO - 127.0.0.1 - - [26/Jun/2025 22:04:51] "GET /api/servers/update HTTP/1.1" 200 -
+2025-06-26 22:05:04,301 - ERROR - Ошибка получения системных метрик: Encountered unknown tag 'endif'.
+2025-06-26 22:05:04,303 - INFO - 127.0.0.1 - - [26/Jun/2025 22:05:04] "GET /system HTTP/1.1" 200 -
