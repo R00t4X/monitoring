@@ -254,10 +254,10 @@
 
     <nav class="navigation">
         <div class="nav-content">
-            <a href="/" class="nav-item">🏠 Главная</a>
-            <a href="/servers" class="nav-item">🖥️ Серверы</a>
+            <a href="/admin" class="nav-item active">📊 Dashboard</a>
+            <a href="/admin/servers" class="nav-item">🖥️ Управление серверами</a>
             <a href="/system" class="nav-item">📊 Мониторинг</a>
-            <a href="/admin" class="nav-item active">⚙️ Админка</a>
+            <a href="/" class="nav-item">🏠 Главная</a>
         </div>
     </nav>
 
@@ -283,6 +283,14 @@
 
         <div class="section">
             <h2 class="section-title">📊 Обзор серверов</h2>
+            <div style="margin-bottom: 20px;">
+                <a href="/admin/servers" class="btn" style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-right: 10px;">
+                    🖥️ Управление серверами
+                </a>
+                <a href="/admin/servers/add" class="btn" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                    ➕ Добавить сервер
+                </a>
+            </div>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -294,7 +302,7 @@
                             <th>Память</th>
                             <th>Диск</th>
                             <th>Время работы</th>
-                            <th>Последняя проверка</th>
+                            <th>Действия</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -329,7 +337,20 @@
                                 <div class="metric-text">{{ server.disk }}%</div>
                             </td>
                             <td>{{ server.uptime }}</td>
-                            <td>{{ server.last_check }}</td>
+                            <td>
+                                {% if server.id != 0 %}
+                                    <a href="/admin/servers/{{ server.id }}/edit" style="background: #ffc107; color: #212529; padding: 5px 10px; text-decoration: none; border-radius: 3px; font-size: 12px; margin-right: 5px;">
+                                        ✏️ Изменить
+                                    </a>
+                                    <form method="POST" action="/admin/servers/{{ server.id }}/delete" style="display: inline;" onsubmit="return confirm('Удалить сервер {{ server.name }}?')">
+                                        <button type="submit" style="background: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 3px; font-size: 12px; cursor: pointer;">
+                                            🗑️ Удалить
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span style="color: #6c757d; font-size: 12px;">Локальная система</span>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -340,13 +361,16 @@
         <div class="section">
             <h2 class="section-title">🔧 Быстрые действия</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <a href="/api/servers/update" class="btn btn-light" style="background: #007bff; color: white; text-align: center; padding: 15px;">
-                    🔄 Обновить данные
+                <a href="/admin/servers" class="action-btn" style="background: #28a745; color: white; text-align: center; padding: 15px; text-decoration: none; border-radius: 8px;">
+                    🖥️ Управление серверами
                 </a>
-                <a href="/system" class="btn btn-light" style="background: #28a745; color: white; text-align: center; padding: 15px;">
+                <a href="/admin/servers/add" class="action-btn" style="background: #007bff; color: white; text-align: center; padding: 15px; text-decoration: none; border-radius: 8px;">
+                    ➕ Добавить сервер
+                </a>
+                <a href="/system" class="action-btn" style="background: #17a2b8; color: white; text-align: center; padding: 15px; text-decoration: none; border-radius: 8px;">
                     📊 Системный мониторинг
                 </a>
-                <a href="/api/health" class="btn btn-light" style="background: #17a2b8; color: white; text-align: center; padding: 15px;">
+                <a href="/api/health" class="action-btn" style="background: #6f42c1; color: white; text-align: center; padding: 15px; text-decoration: none; border-radius: 8px;">
                     ❤️ Проверка здоровья
                 </a>
             </div>

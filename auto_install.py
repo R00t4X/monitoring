@@ -72,12 +72,17 @@ class AutoInstaller:
         package_spec = f"{package_name}=={version}" if version else package_name
         
         try:
+            # Используем правильное имя модуля для импорта
+            import_name = package_name
+            if package_name == "py-cpuinfo":
+                import_name = "cpuinfo"
+            
             # Проверяем, установлен ли уже пакет
             result = subprocess.run([
-                self.python_exe, "-c", f"import {package_name}"
+                self.python_exe, "-c", f"import {import_name}; print('OK')"
             ], capture_output=True, text=True)
             
-            if result.returncode == 0:
+            if result.returncode == 0 and "OK" in result.stdout:
                 self.print_status(f"{package_name} уже установлен", "SUCCESS")
                 return True
         except:

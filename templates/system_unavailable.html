@@ -6,7 +6,7 @@
     <title>Системный мониторинг недоступен</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,21 +20,56 @@
             background: white;
             border-radius: 15px;
             padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             text-align: center;
         }
-        .error-icon {
+        .warning-icon {
             font-size: 4rem;
             margin-bottom: 20px;
+            color: #ffc107;
         }
         h1 {
-            color: #e53e3e;
+            color: #dc3545;
             margin-bottom: 20px;
+            font-size: 1.8rem;
         }
-        .message {
-            color: #4a5568;
-            margin-bottom: 30px;
-            line-height: 1.6;
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+        .suggestions {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+            text-align: left;
+        }
+        .suggestions h3 {
+            margin-top: 0;
+            color: #0c5460;
+        }
+        .suggestions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .suggestions li {
+            margin: 8px 0;
+        }
+        .suggestions code {
+            background: #e2e3e5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #495057;
+        }
+        .nav-links {
+            margin-top: 30px;
         }
         .nav-link {
             background: #667eea;
@@ -49,44 +84,71 @@
         .nav-link:hover {
             background: #5a67d8;
         }
-        .instructions {
-            background: #f7fafc;
-            border: 1px solid #e2e8f0;
+        .auto-install-btn {
+            background: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
             border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: left;
+            font-weight: bold;
+            margin: 20px 10px;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .auto-install-btn:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="error-icon">⚠️</div>
+        <div class="warning-icon">⚠️</div>
         <h1>Системный мониторинг недоступен</h1>
         
-        <div class="message">
-            <p>Не удалось загрузить модули системного мониторинга.</p>
-            <p>Возможные причины:</p>
-            <ul style="text-align: left; display: inline-block;">
-                <li>Не установлены зависимости (psutil, py-cpuinfo)</li>
-                <li>Проблемы с виртуальным окружением</li>
-                <li>Ошибки импорта модулей</li>
-            </ul>
+        {% if error %}
+        <div class="error-message">
+            <strong>Ошибка:</strong> {{ error }}
+        </div>
+        {% endif %}
+        
+        <p>Не удалось загрузить модули системного мониторинга.</p>
+        
+        <div class="suggestions">
+            <h3>🔧 Инструкции по исправлению:</h3>
+            {% if suggestions %}
+                <ol>
+                    {% for suggestion in suggestions %}
+                        <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <ol>
+                    <li>Запустите автонастройку: <code>python3 auto_install.py</code></li>
+                    <li>Или установите зависимости вручную: <code>pip install psutil py-cpuinfo</code></li>
+                    <li>Перезапустите приложение в виртуальном окружении</li>
+                </ol>
+            {% endif %}
         </div>
         
-        <div>
+        <div class="nav-links">
+            <a href="#" onclick="runAutoInstall()" class="auto-install-btn">🚀 Автоматическая установка</a>
             <a href="/" class="nav-link">🏠 Главная</a>
             <a href="/servers" class="nav-link">🖥️ Серверы</a>
         </div>
         
-        <div class="instructions">
-            <h3>🔧 Инструкции по исправлению:</h3>
-            <ol>
-                <li>Запустите автонастройку: <code>python3 auto_setup.py</code></li>
-                <li>Или установите зависимости вручную: <code>pip install psutil py-cpuinfo</code></li>
-                <li>Перезапустите приложение</li>
-            </ol>
+        <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 12px; color: #6c757d;">
+            <strong>Возможные причины:</strong><br>
+            • Не установлены зависимости (psutil, py-cpuinfo)<br>
+            • Проблемы с виртуальным окружением<br>
+            • Ошибки импорта модулей<br>
+            • Недостаточные права доступа
         </div>
     </div>
+    
+    <script>
+        function runAutoInstall() {
+            alert('Для автоматической установки выполните в терминале:\npython3 auto_install.py');
+        }
+    </script>
 </body>
 </html>

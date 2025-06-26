@@ -1,29 +1,20 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Мониторинг локальной системы с безопасным импортом.
+Мониторинг локальной системы.
 """
 import os
 import platform
 import socket
 import logging
+import random
 from datetime import datetime
 from collections import deque
 from typing import Dict, Optional
-import random  # Add missing import
 
 # Безопасный импорт psutil
 try:
     import psutil
     PSUTIL_AVAILABLE = True
-    # Проверяем доступность основных функций
-    try:
-        psutil.cpu_percent()
-        psutil.virtual_memory()
-        PSUTIL_FUNCTIONAL = True
-    except:
-        PSUTIL_FUNCTIONAL = False
-        logging.warning("psutil установлен, но не функционален")
+    PSUTIL_FUNCTIONAL = True
 except ImportError:
     PSUTIL_AVAILABLE = False
     PSUTIL_FUNCTIONAL = False
@@ -33,17 +24,10 @@ except ImportError:
 try:
     from cpuinfo import get_cpu_info
     CPUINFO_AVAILABLE = True
-    # Проверяем функциональность
-    try:
-        get_cpu_info()
-        CPUINFO_FUNCTIONAL = True
-    except:
-        CPUINFO_FUNCTIONAL = False
-        logging.warning("py-cpuinfo установлен, но не функционален")
+    CPUINFO_FUNCTIONAL = True
 except ImportError:
     CPUINFO_AVAILABLE = False
     CPUINFO_FUNCTIONAL = False
-    # Удаляем предупреждение для менее критичного модуля
     def get_cpu_info():
         return {'brand_raw': platform.processor() or 'Unknown CPU'}
 
@@ -69,9 +53,6 @@ class SystemMonitor:
             'cpuinfo_available': CPUINFO_AVAILABLE,
             'cpuinfo_functional': CPUINFO_FUNCTIONAL
         }
-        
-        if not PSUTIL_FUNCTIONAL:
-            self.logger.warning("Системный мониторинг работает в ограниченном режиме")
     
     def get_system_info(self) -> Dict:
         """Получение основной информации о системе."""
@@ -84,7 +65,7 @@ class SystemMonitor:
             'modules_status': self.modules_status
         }
         
-        if PSUTIL_AVAILABLE:
+        if PSUTIL_FUNCTIONAL:
             try:
                 boot_time = datetime.fromtimestamp(psutil.boot_time())
                 uptime = datetime.now() - boot_time
@@ -98,7 +79,7 @@ class SystemMonitor:
                 cpu_info = get_cpu_info()
                 info['processor'] = cpu_info.get('brand_raw', 'Unknown')
             except Exception:
-                info['processor'] = 'Unknown (cpuinfo error)'
+                info['processor'] = platform.processor() or 'Unknown'
         else:
             info['processor'] = platform.processor() or 'Unknown'
         
@@ -108,7 +89,7 @@ class SystemMonitor:
         """Получение данных использования CPU."""
         if not PSUTIL_FUNCTIONAL:
             return {
-                'total': random.randint(10, 30),  # Имитация данных
+                'total': random.randint(10, 30),
                 'simulated': True,
                 'note': 'Показаны имитированные данные (psutil недоступен)',
                 'timestamp': datetime.now().isoformat()
@@ -139,8 +120,8 @@ class SystemMonitor:
         """Получение данных использования памяти."""
         if not PSUTIL_FUNCTIONAL:
             return {
-                'percent': random.randint(40, 70),  # Имитация данных
-                'total': 8.0,  # GB
+                'percent': random.randint(40, 70),
+                'total': 8.0,
                 'used': random.randint(3, 6),
                 'simulated': True,
                 'note': 'Показаны имитированные данные (psutil недоступен)',
@@ -151,8 +132,8 @@ class SystemMonitor:
             memory = psutil.virtual_memory()
             
             metrics = {
-                'total': round(memory.total / (1024**3), 2),  # GB
-                'used': round(memory.used / (1024**3), 2),   # GB
+                'total': round(memory.total / (1024**3), 2),
+                'used': round(memory.used / (1024**3), 2),
                 'percent': round(memory.percent, 1),
                 'timestamp': datetime.now().isoformat()
             }
@@ -164,6 +145,8 @@ class SystemMonitor:
             self.logger.error(f"Ошибка получения памяти метрик: {e}")
             return {
                 'percent': 0,
+                'total': 0,
+                'used': 0,
                 'error': str(e),
                 'timestamp': datetime.now().isoformat()
             }
@@ -191,8 +174,8 @@ class SystemMonitor:
                     disk_info = {
                         'device': partition.device,
                         'mountpoint': partition.mountpoint,
-                        'total': round(usage.total / (1024**3), 2),  # GB
-                        'used': round(usage.used / (1024**3), 2),   # GB
+                        'total': round(usage.total / (1024**3), 2),
+                        'used': round(usage.used / (1024**3), 2),
                         'percent': round((usage.used / usage.total) * 100, 1) if usage.total > 0 else 0
                     }
                     disk_usage.append(disk_info)
@@ -209,8 +192,8 @@ class SystemMonitor:
         """Получение сетевых данных."""
         if not PSUTIL_FUNCTIONAL:
             return {
-                'bytes_sent': random.randint(100, 1000),  # MB
-                'bytes_recv': random.randint(500, 2000),  # MB
+                'bytes_sent': random.randint(100, 1000),
+                'bytes_recv': random.randint(500, 2000),
                 'packets_sent': random.randint(10000, 50000),
                 'packets_recv': random.randint(20000, 80000),
                 'simulated': True,
@@ -222,8 +205,8 @@ class SystemMonitor:
             net_io = psutil.net_io_counters()
             
             metrics = {
-                'bytes_sent': round(net_io.bytes_sent / (1024**2), 2),  # MB
-                'bytes_recv': round(net_io.bytes_recv / (1024**2), 2),  # MB
+                'bytes_sent': round(net_io.bytes_sent / (1024**2), 2),
+                'bytes_recv': round(net_io.bytes_recv / (1024**2), 2),
                 'packets_sent': net_io.packets_sent,
                 'packets_recv': net_io.packets_recv,
                 'timestamp': datetime.now().isoformat()
@@ -237,6 +220,8 @@ class SystemMonitor:
             return {
                 'bytes_sent': 0,
                 'bytes_recv': 0,
+                'packets_sent': 0,
+                'packets_recv': 0,
                 'error': str(e),
                 'timestamp': datetime.now().isoformat()
             }

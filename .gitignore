@@ -3,47 +3,47 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
 # Виртуальные окружения
 monitoring_venv/
 venv/
 env/
-ENV/
 .venv/
-.env/
-pyvenv.cfg
 
-# Логи и временные файлы
+# Логи
 *.log
 logs/
-log/
-*.tmp
-*.temp
-temp/
-.cache/
+
+# База данных
+data/monitoring.db
+data/monitoring.db-journal
 
 # Конфигурация и секреты
 .env
 .env.local
-.env.development
+config.ini
+secrets.json
+*.key
+*.pem
+
+# Резервные копии данных
+data/servers_data.json
+data/backup_*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Временные файлы
+*.tmp
+temp/
+.cache/
 .env.test
 .env.production
 config.ini

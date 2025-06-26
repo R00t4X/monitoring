@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добавить Сервер - Админка</title>
+    <title>Добавить сервер - Админка</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -18,24 +18,17 @@
             background: white;
             border-radius: 15px;
             padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
         label {
             display: block;
             margin-bottom: 8px;
             color: #4a5568;
             font-weight: bold;
         }
-        input[type="text"], input[type="number"], select {
+        input, select, textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #e2e8f0;
@@ -44,7 +37,7 @@
             transition: border-color 0.3s;
             box-sizing: border-box;
         }
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -59,62 +52,170 @@
             font-weight: bold;
             cursor: pointer;
             transition: background 0.3s;
-            margin-top: 20px;
         }
-        .btn:hover {
-            background: #5a67d8;
-        }
+        .btn:hover { background: #5a67d8; }
         .btn-secondary {
-            background: #718096;
+            background: #6c757d;
             margin-top: 10px;
         }
-        .btn-secondary:hover {
-            background: #4a5568;
-        }
+        .btn-secondary:hover { background: #545b62; }
+        .flash-messages { margin-bottom: 20px; }
+        .flash-message { padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+        .flash-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>➕ Добавить Новый Сервер</h1>
+            <h1>➕ Добавить новый сервер</h1>
         </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
         <form method="POST">
             <div class="form-group">
-                <label for="name">Название сервера:</label>
-                <input type="text" id="name" name="name" required placeholder="Например: Web-сервер 2">
+                <label for="name">Название сервера *</label>
+                <input type="text" id="name" name="name" required 
+                       value="{{ server.name if server else '' }}"
+                       placeholder="Например: Web-сервер 2">
             </div>
 
             <div class="form-group">
-                <label for="ip">IP адрес:</label>
-                <input type="text" id="ip" name="ip" required placeholder="192.168.1.50" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+                <label for="ip">IP адрес *</label>
+                <input type="text" id="ip" name="ip" required 
+                       value="{{ server.ip if server else '' }}"
+                       placeholder="192.168.1.100">
             </div>
 
             <div class="form-group">
-                <label for="port">Порт:</label>
-                <input type="number" id="port" name="port" value="80" min="1" max="65535">
+                <label for="port">Порт</label>
+                <input type="number" id="port" name="port" 
+                       value="{{ server.port if server else 22 }}"
+                       min="1" max="65535">
             </div>
 
             <div class="form-group">
-                <label for="location">Местоположение:</label>
-                <input type="text" id="location" name="location" placeholder="Москва, РФ">
+                <label for="location">Местоположение</label>
+                <input type="text" id="location" name="location" 
+                       value="{{ server.location if server else '' }}"
+                       placeholder="Москва, РФ">
             </div>
 
             <div class="form-group">
-                <label for="os">Операционная система:</label>
+                <label for="os">Операционная система</label>
                 <select id="os" name="os">
-                    <option value="Ubuntu 22.04">Ubuntu 22.04</option>
-                    <option value="CentOS 8">CentOS 8</option>
-                    <option value="Windows Server 2019">Windows Server 2019</option>
-                    <option value="Debian 11">Debian 11</option>
-                    <option value="Red Hat Enterprise Linux">Red Hat Enterprise Linux</option>
-                    <option value="Другое">Другое</option>
+                    <option value="">Выберите ОС</option>
+                    <option value="Ubuntu 22.04" {{ 'selected' if server and server.os == 'Ubuntu 22.04' else '' }}>Ubuntu 22.04</option>
+                    <option value="CentOS 8" {{ 'selected' if server and server.os == 'CentOS 8' else '' }}>CentOS 8</option>
+                    <option value="Windows Server 2019" {{ 'selected' if server and server.os == 'Windows Server 2019' else '' }}>Windows Server 2019</option>
+                    <option value="Debian 11" {{ 'selected' if server and server.os == 'Debian 11' else '' }}>Debian 11</option>
+                    <option value="Red Hat Enterprise Linux" {{ 'selected' if server and server.os == 'Red Hat Enterprise Linux' else '' }}>Red Hat Enterprise Linux</option>
+                    <option value="Другое" {{ 'selected' if server and server.os == 'Другое' else '' }}>Другое</option>
                 </select>
             </div>
 
-            <button type="submit" class="btn">Добавить Сервер</button>
-            <a href="/admin" class="btn btn-secondary" style="display: block; text-align: center; text-decoration: none;">Отмена</a>
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" rows="3" 
+                          placeholder="Краткое описание сервера">{{ server.description if server else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <h3 style="color: #4a5568; margin: 30px 0 15px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+                    🔐 SSH подключение
+                </h3>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Имя пользователя SSH</label>
+                <input type="text" id="username" name="username" 
+                       value="{{ server.username if server else 'root' }}"
+                       placeholder="root">
+            </div>
+
+            <div class="form-group">
+                <label for="auth_method">Метод аутентификации</label>
+                <select id="auth_method" name="auth_method" onchange="toggleAuthMethod()">
+                    <option value="key" {{ 'selected' if not server or server.auth_method == 'key' else '' }}>SSH ключ</option>
+                    <option value="password" {{ 'selected' if server and server.auth_method == 'password' else '' }}>Пароль</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="password_field" style="display: none;">
+                <label for="password">Пароль SSH</label>
+                <input type="password" id="password" name="password" 
+                       value="{{ server.password if server else '' }}"
+                       placeholder="Введите пароль">
+            </div>
+
+            <div class="form-group" id="key_field">
+                <label for="key_path">Путь к SSH ключу</label>
+                <input type="text" id="key_path" name="key_path" 
+                       value="{{ server.key_path if server else '~/.ssh/id_rsa' }}"
+                       placeholder="~/.ssh/id_rsa">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="test_ssh" checked style="margin-right: 8px;">
+                    Тестировать SSH подключение перед добавлением
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="start_monitoring" style="margin-right: 8px;">
+                    Запустить автоматический мониторинг (каждые 5 минут)
+                </label>
+            </div>
+
+            {% if ssh_test %}
+            <div class="form-group">
+                {% if ssh_test.success %}
+                    <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; border: 1px solid #c3e6cb;">
+                        ✅ SSH подключение успешно: {{ ssh_test.message }}
+                    </div>
+                {% else %}
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border: 1px solid #f5c6cb;">
+                        ❌ SSH ошибка: {{ ssh_test.error }}
+                        {% if ssh_test.suggestion %}
+                            <br><strong>Рекомендация:</strong> {{ ssh_test.suggestion }}
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn">💾 Добавить сервер</button>
+            <a href="/admin/servers" class="btn btn-secondary" style="display: block; text-align: center; text-decoration: none;">❌ Отмена</a>
         </form>
     </div>
+
+    <script>
+        function toggleAuthMethod() {
+            const authMethod = document.getElementById('auth_method').value;
+            const passwordField = document.getElementById('password_field');
+            const keyField = document.getElementById('key_field');
+            
+            if (authMethod === 'password') {
+                passwordField.style.display = 'block';
+                keyField.style.display = 'none';
+            } else {
+                passwordField.style.display = 'none';
+                keyField.style.display = 'block';
+            }
+        }
+        
+        // Инициализация при загрузке
+        toggleAuthMethod();
+    </script>
 </body>
 </html>
