@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Приложение Мониторинга</title>
+    <title>Система Мониторинга</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -18,86 +18,39 @@
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-top: 20px;
-        }
-        h1 { 
-            color: #333; 
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
         }
-        h2 {
-            color: #555;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
-        .status { 
-            color: #28a745; 
-            font-weight: bold; 
-            font-size: 1.2em;
-        }
-        .info-box {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border-left: 5px solid #667eea;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background: #e9ecef;
-            margin: 10px 0;
-            padding: 15px;
+        h1 { color: #333; margin-bottom: 30px; }
+        .status { color: #28a745; font-weight: bold; font-size: 1.2em; }
+        .links { margin-top: 30px; }
+        .links a {
+            display: inline-block;
+            margin: 10px;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
             border-radius: 8px;
             transition: background 0.3s;
         }
-        li:hover {
-            background: #dee2e6;
-        }
-        a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .emoji {
-            font-size: 1.5em;
-            margin-right: 10px;
-        }
+        .links a:hover { background: #5a67d8; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🖥️ Приложение Мониторинга</h1>
+        <h1>🖥️ Система Мониторинга</h1>
+        <p class="status">✅ Приложение успешно запущено!</p>
         
-        <div class="info-box">
-            <p><span class="emoji">✅</span>Приложение для мониторинга успешно запущено!</p>
-            <p><span class="emoji">📊</span>Статус системы: <span class="status">Активно и работает</span></p>
+        <div class="links">
+            <a href="/api/health">🔧 Проверка здоровья</a>
+            <a href="/admin">⚙️ Админка</a>
         </div>
         
-        <h2>🔗 Доступные эндпоинты API:</h2>
-        <ul>
-            <li>
-                <span class="emoji">💚</span>
-                <a href="/api/health">/api/health</a> - Проверка состояния здоровья приложения
-            </li>
-            <li>
-                <span class="emoji">📈</span>
-                <a href="/api/status">/api/status</a> - Получение текущего статуса приложения
-            </li>
-        </ul>
-        
-        <div class="info-box">
-            <h3>📋 Информация о системе:</h3>
-            <p>• Версия приложения: <strong>1.0.0</strong></p>
-            <p>• Фреймворк: <strong>Flask</strong></p>
-            <p>• Режим: <strong>Разработка</strong></p>
-            <p>• Порт: <strong>5000</strong></p>
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3>📋 Информация</h3>
+            <p>Версия: 1.0.0</p>
+            <p>Статус: Активно</p>
+            <p>Порт: 5000</p>
         </div>
     </div>
 </body>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Системный Мониторинг</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 20px;
+        }
+        .nav-link {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: #5a67d8;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #667eea;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #2d3748;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s;
+            border-radius: 6px;
+        }
+        .cpu-fill { background: linear-gradient(90deg, #4299e1, #2b6cb0); }
+        .memory-fill { background: linear-gradient(90deg, #ed8936, #c05621); }
+        .disk-fill { background: linear-gradient(90deg, #38b2ac, #2c7a7b); }
+        .core-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .core-item {
+            background: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .process-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .process-table th,
+        .process-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 12px;
+        }
+        .process-table th {
+            background: #f1f5f9;
+            font-weight: bold;
+        }
+        .temperature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .temp-sensor {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .temp-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .refresh-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #e6fffa;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ Системный Мониторинг</h1>
+            <div>
+                <a href="/" class="nav-link">🏠 Главная</a>
+                <a href="/servers" class="nav-link">🖥️ Серверы</a>
+                <a href="/admin" class="nav-link">⚙️ Админка</a>
+            </div>
+        </div>
+
+        <div class="refresh-info">
+            <span>🔄 Обновление каждые 30 секунд</span>
+            <span style="margin-left: 20px;">Последнее обновление: {{ report.timestamp }}</span>
+        </div>
+
+        <!-- Информация о системе -->
+        <div class="card" style="grid-column: 1 / -1; margin-bottom: 20px;">
+            <h3>ℹ️ Информация о системе</h3>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <div>
+                    <div class="metric-row">
+                        <span>Имя хоста:</span>
+                        <strong>{{ report.system_info.hostname }}</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Процессор:</span>
+                        <strong>{{ report.system_info.processor }}</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Архитектура:</span>
+                        <strong>{{ report.system_info.architecture }}</strong>
+                    </div>
+                </div>
+                <div>
+                    <div class="metric-row">
+                        <span>ОС:</span>
+                        <strong>{{ report.system_info.platform }} {{ report.system_info.platform_release }}</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Время работы:</span>
+                        <strong>{{ report.system_info.uptime }}</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Ядер CPU:</span>
+                        <strong>{{ report.system_info.cpu_count }} ({{ report.system_info.cpu_count_logical }} логических)</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- CPU -->
+            <div class="card">
+                <h3>⚡ Процессор</h3>
+                <div class="metric-row">
+                    <span>Общая загрузка:</span>
+                    <strong>{{ report.cpu.total }}%</strong>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill cpu-fill" style="width: {{ report.cpu.total }}%;"></div>
+                </div>
+                
+                {% if report.cpu.frequency_current %}
+                <div class="metric-row">
+                    <span>Частота:</span>
+                    <strong>{{ report.cpu.frequency_current }} MHz</strong>
+                </div>
+                {% endif %}
+                
+                <h4>Загрузка по ядрам:</h4>
+                <div class="core-grid">
+                    {% for core_load in report.cpu.per_core %}
+                    <div class="core-item">
+                        Core {{ loop.index0 }}<br>
+                        <strong>{{ core_load }}%</strong>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Память -->
+            <div class="card">
+                <h3>💾 Память</h3>
+                <div class="metric-row">
+                    <span>Использовано:</span>
+                    <strong>{{ report.memory.used }} GB / {{ report.memory.total }} GB ({{ report.memory.percent }}%)</strong>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill memory-fill" style="width: {{ report.memory.percent }}%;"></div>
+                </div>
+                
+                <div class="metric-row">
+                    <span>Доступно:</span>
+                    <strong>{{ report.memory.available }} GB</strong>
+                </div>
+                
+                {% if report.memory.swap_total > 0 %}
+                <div class="metric-row">
+                    <span>Swap:</span>
+                    <strong>{{ report.memory.swap_used }} GB / {{ report.memory.swap_total }} GB ({{ report.memory.swap_percent }}%)</strong>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Сеть -->
+            <div class="card">
+                <h3>🌐 Сеть</h3>
+                <div class="metric-row">
+                    <span>Отправлено:</span>
+                    <strong>{{ report.network.bytes_sent }} MB</strong>
+                </div>
+                <div class="metric-row">
+                    <span>Получено:</span>
+                    <strong>{{ report.network.bytes_recv }} MB</strong>
+                </div>
+                <div class="metric-row">
+                    <span>Пакеты отправлены:</span>
+                    <strong>{{ report.network.packets_sent }}</strong>
+                </div>
+                <div class="metric-row">
+                    <span>Пакеты получены:</span>
+                    <strong>{{ report.network.packets_recv }}</strong>
+                </div>
+                <div class="metric-row">
+                    <span>Активные соединения:</span>
+                    <strong>{{ report.network.connections }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Диски -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>💿 Диски</h3>
+            <div class="grid">
+                {% for disk in report.disk %}
+                <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;">
+                    <h4>{{ disk.device }} ({{ disk.mountpoint }})</h4>
+                    <div class="metric-row">
+                        <span>Тип:</span>
+                        <strong>{{ disk.fstype }}</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Размер:</span>
+                        <strong>{{ disk.used }} GB / {{ disk.total }} GB ({{ disk.percent }}%)</strong>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill disk-fill" style="width: {{ disk.percent }}%"></div>
+                    </div>
+                    <div class="metric-row">
+                        <span>Свободно:</span>
+                        <strong>{{ disk.free }} GB</strong>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Температура -->
+        {% if report.temperature %}
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>🌡️ Температура</h3>
+            <div class="temperature-grid">
+                {% for sensor_name, sensors in report.temperature.items() %}
+                    {% for sensor in sensors %}
+                    <div class="temp-sensor">
+                        <div><strong>{{ sensor_name }}</strong></div>
+                        <div>{{ sensor.label }}</div>
+                        <div class="temp-value">{{ sensor.current }}°C</div>
+                        {% if sensor.high %}
+                        <div style="font-size: 0.9em; color: #718096;">
+                            Макс: {{ sensor.high }}°C
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Процессы -->
+        <div class="card">
+            <h3>⚙️ Топ процессов по CPU</h3>
+            <table class="process-table">
+                <thead>
+                    <tr>
+                        <th>PID</th>
+                        <th>Имя</th>
+                        <th>CPU %</th>
+                        <th>Память %</th>
+                        <th>Пользователь</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for process in report.processes %}
+                    <tr>
+                        <td>{{ process.pid }}</td>
+                        <td>{{ process.name }}</td>
+                        <td>{{ process.cpu_percent }}%</td>
+                        <td>{{ process.memory_percent }}%</td>
+                        <td>{{ process.username or 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Автообновление каждые 30 секунд
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>
