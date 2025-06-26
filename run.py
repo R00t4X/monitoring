@@ -1,37 +1,50 @@
+#!/usr/bin/env python3
+"""
+Точка входа в приложение мониторинга
+"""
 import os
 import sys
+import logging
+from dotenv import load_dotenv
 
-# Проверяем, запущены ли мы в виртуальном окружении
-def is_venv():
-    return hasattr(sys, 'real_prefix') or (
-        hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
-    )
+# Загружаем переменные окружения из .env файла
+load_dotenv()
+
+# Добавляем корневую директорию в PYTHONPATH
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Настраиваем логирование
+from app.utils.logger import configure_logging
+configure_logging()
+
+# Импортируем и запускаем приложение
+from app import create_app
+from app.utils.database import init_db
+from app.services.monitoring.manager import MonitoringManager
 
 def main():
-    # Если не в виртуальном окружении, запускаем автонастройку
-    if not is_venv():
-        print("🔧 Не обнаружено виртуальное окружение")
-        print("🚀 Запуск автонастройки...")
-        
-        # Импортируем и запускаем автонастройку
-        try:
-            from auto_setup import AutoSetup
-            setup = AutoSetup()
-            setup.setup_and_run()
-        except ImportError:
-            print("❌ Файл auto_setup.py не найден!")
-            print("📥 Запустите: python3 auto_setup.py")
-            sys.exit(1)
-    else:
-        # Если в виртуальном окружении, просто импортируем и запускаем app
-        try:
-            from app import app
-            print("🚀 Запуск приложения из виртуального окружения...")
-            app.run(debug=True, host='127.0.0.1', port=5000)
-        except ImportError as e:
-            print(f"❌ Ошибка импорта: {e}")
-            print("🔧 Попробуйте переустановить зависимости")
-            sys.exit(1)
+    # Определяем режим работы
+    env = os.environ.get("FLASK_ENV", "development")
+    
+    # Создаем приложение с соответствующей конфигурацией
+    app = create_app(env)
+    
+    # Инициализируем базу данных
+    with app.app_context():
+        init_db()
+    
+    # Запускаем менеджер мониторинга
+    monitoring_manager = MonitoringManager()
+    monitoring_manager.start()
+    
+    # Получаем параметры запуска
+    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", 5000))
+    debug = env == "development"
+    
+    # Запускаем приложение
+    logging.info(f"Запуск приложения мониторинга на {host}:{port} в режиме {env}")
+    app.run(host=host, port=port, debug=debug)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

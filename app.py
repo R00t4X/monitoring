@@ -1,7 +1,8 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash
+from flask_socketio import SocketIO, emit
+from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import datetime, timedelta
-import random
 import logging
 from functools import wraps
 
@@ -14,7 +15,15 @@ except ImportError as e:
     SYSTEM_MONITOR_AVAILABLE = False
     system_monitor = None
 
-import socket
+# Import advanced monitoring components
+try:
+    from advanced_monitor import advanced_monitor
+    from alert_system import alert_manager, EmailNotifier, SlackNotifier
+    from models import db, Server, ServerMetric, Alert as DBAlert, MonitoringConfig
+    ADVANCED_MONITORING_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Advanced monitoring components not available: {e}")
+    ADVANCED_MONITORING_AVAILABLE = False
 
 # Настройка безопасного логирования
 logging.basicConfig(
@@ -45,11 +54,19 @@ class SensitiveDataFilter(logging.Filter):
 for handler in logging.getLogger().handlers:
     handler.addFilter(SensitiveDataFilter())
 
-# Создание экземпляра Flask приложения
+# Создание приложения Flask
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Конфигурация базы данных
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///monitoring.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Инициализация расширений
+db.init_app(app) if ADVANCED_MONITORING_AVAILABLE else None
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # Базовая конфигурация
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
 
 # Учетные данные администратора
@@ -391,17 +408,90 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'ошибка': 'Внутренняя ошибка сервера'}), 500
 
-if __name__ == '__main__':
-    logging.info("Запуск приложения мониторинга")
-    # Инициализируем список серверов с локальной машиной
-    update_servers_list()
-    # Запуск приложения
-    port = int(os.environ.get('PORT', 5000))
-    host = os.environ.get('HOST', '127.0.0.1')
+if ADVANCED_MONITORING_AVAILABLE:
+    @app.route('/api/realtime/metrics')
+    def realtime_metrics():
+        """Real-time metrics endpoint"""
+        metrics = advanced_monitor.get_comprehensive_metrics()
+        
+        # Проверяем алерты
+        alert_manager.check_metrics(metrics)
+        
+        return jsonify({
+            'metrics': metrics,
+            'alerts': [alert.to_dict() for alert in alert_manager.get_active_alerts()],
+            'timestamp': datetime.now().isoformat()
+        })
     
-    print(f"🚀 Запуск приложения мониторинга на {host}:{port}")
-    app.run(
-        host=host,
-        port=port,
-        debug=app.config['DEBUG']
-    )
+    @app.route('/api/metrics/history/<metric_type>')
+    def metrics_history(metric_type):
+        """История метрик"""
+        limit = request.args.get('limit', 100, type=int)
+        history = advanced_monitor.get_metrics_history(metric_type, limit)
+        return jsonify(history)
+    
+    @app.route('/api/metrics/trends/<metric_type>/<field>')
+    def metrics_trends(metric_type, field):
+        """Тренды метрик"""
+        period = request.args.get('period', 60, type=int)
+        trends = advanced_monitor.calculate_trends(metric_type, field, period)
+        return jsonify(trends)
+    
+    @app.route('/advanced-dashboard')
+    def advanced_dashboard():
+        """Продвинутая панель мониторинга"""
+        return render_template('advanced_dashboard.html')
+    
+    @socketio.on('connect')
+    def handle_connect():
+        """Обработка подключения WebSocket"""
+        print('Client connected')
+        emit('status', {'msg': 'Connected to monitoring system'})
+    
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        """Обработка отключения WebSocket"""
+        print('Client disconnected')
+    
+    @socketio.on('request_metrics')
+    def handle_metrics_request():
+        """Обработка запроса метрик через WebSocket"""
+        metrics = advanced_monitor.get_comprehensive_metrics()
+        emit('metrics_update', metrics)
+    
+    def broadcast_metrics(metrics):
+        """Broadcast метрик всем подключенным клиентам"""
+        socketio.emit('metrics_update', metrics)
+    
+    # Добавляем колбэк для трансляции метрик
+    advanced_monitor.add_callback(broadcast_metrics)
+
+@app.before_first_request
+def create_tables():
+    """Создание таблиц базы данных"""
+    if ADVANCED_MONITORING_AVAILABLE:
+        with app.app_context():
+            db.create_all()
+            
+            # Запускаем продвинутый мониторинг
+            advanced_monitor.start_monitoring(interval=30)
+            
+            # Настройка уведомлений (пример)
+            # email_notifier = EmailNotifier(
+            #     smtp_server="smtp.gmail.com",
+            #     smtp_port=587,
+            #     username="your-email@gmail.com",
+            #     password="your-password",
+            #     from_email="monitoring@yourcompany.com",
+            #     to_emails=["admin@yourcompany.com"]
+            # )
+            # alert_manager.add_notifier(email_notifier)
+
+# Запуск приложения
+if __name__ == '__main__':
+    logging.info("Запуск продвинутой системы мониторинга")
+    
+    if ADVANCED_MONITORING_AVAILABLE:
+        socketio.run(app, host='127.0.0.1', port=5000, debug=True)
+    else:
+        app.run(host='127.0.0.1', port=5000, debug=True)
