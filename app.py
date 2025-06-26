@@ -1,10 +1,25 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash
-from flask_socketio import SocketIO, emit
-from flask_sqlalchemy import SQLAlchemy
 import os
+import random
+import socket
 from datetime import datetime, timedelta
 import logging
 from functools import wraps
+
+# Безопасный импорт дополнительных модулей
+try:
+    from flask_socketio import SocketIO, emit
+    SOCKETIO_AVAILABLE = True
+except ImportError:
+    SOCKETIO_AVAILABLE = False
+    SocketIO = None
+
+try:
+    from flask_sqlalchemy import SQLAlchemy
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    SQLALCHEMY_AVAILABLE = False
+    SQLAlchemy = None
 
 # Безопасный импорт system_monitor
 try:
@@ -19,13 +34,20 @@ except ImportError as e:
 try:
     from advanced_monitor import advanced_monitor
     from alert_system import alert_manager, EmailNotifier, SlackNotifier
-    from models import db, Server, ServerMetric, Alert as DBAlert, MonitoringConfig
+    if SQLALCHEMY_AVAILABLE:
+        from models import db, Server, ServerMetric, Alert as DBAlert, MonitoringConfig
     ADVANCED_MONITORING_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️ Advanced monitoring components not available: {e}")
     ADVANCED_MONITORING_AVAILABLE = False
+    # Create mock objects
+    if SQLALCHEMY_AVAILABLE:
+        class MockDB:
+            def init_app(self, app): pass
+            def create_all(self): pass
+        db = MockDB()
 
-# Настройка безопасного логирования
+# Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -35,36 +57,24 @@ logging.basicConfig(
     ]
 )
 
-# Фильтр для исключения чувствительных данных из логов
-class SensitiveDataFilter(logging.Filter):
-    def filter(self, record):
-        # Убираем чувствительные данные из логов
-        sensitive_keywords = ['password', 'token', 'secret', 'key', 'auth']
-        message = record.getMessage().lower()
-        
-        for keyword in sensitive_keywords:
-            if keyword in message:
-                record.msg = "Sensitive data filtered from logs"
-                record.args = ()
-                break
-        
-        return True
-
-# Применяем фильтр ко всем логгерам
-for handler in logging.getLogger().handlers:
-    handler.addFilter(SensitiveDataFilter())
-
 # Создание приложения Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-# Конфигурация базы данных
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///monitoring.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Конфигурация базы данных (только если SQLAlchemy доступна)
+if SQLALCHEMY_AVAILABLE:
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///monitoring.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Инициализация расширений
-db.init_app(app) if ADVANCED_MONITORING_AVAILABLE else None
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+if SQLALCHEMY_AVAILABLE and 'db' in locals():
+    db.init_app(app)
+
+# Инициализация SocketIO (только если доступна)
+if SOCKETIO_AVAILABLE:
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+else:
+    socketio = None
 
 # Базовая конфигурация
 app.config['DEBUG'] = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
@@ -442,23 +452,24 @@ if ADVANCED_MONITORING_AVAILABLE:
         """Продвинутая панель мониторинга"""
         return render_template('advanced_dashboard.html')
     
-    @socketio.on('connect')
-    def handle_connect():
-        """Обработка подключения WebSocket"""
-        print('Client connected')
-        emit('status', {'msg': 'Connected to monitoring system'})
-    
-    @socketio.on('disconnect')
-    def handle_disconnect():
-        """Обработка отключения WebSocket"""
-        print('Client disconnected')
-    
-    @socketio.on('request_metrics')
-    def handle_metrics_request():
-        """Обработка запроса метрик через WebSocket"""
-        metrics = advanced_monitor.get_comprehensive_metrics()
-        emit('metrics_update', metrics)
-    
+    if ADVANCED_MONITORING_AVAILABLE and SOCKETIO_AVAILABLE:
+        @socketio.on('connect')
+        def handle_connect():
+            """Обработка подключения WebSocket"""
+            print('Client connected')
+            emit('status', {'msg': 'Connected to monitoring system'})
+        
+        @socketio.on('disconnect')
+        def handle_disconnect():
+            """Обработка отключения WebSocket"""
+            print('Client disconnected')
+        
+        @socketio.on('request_metrics')
+        def handle_metrics_request():
+            """Обработка запроса метрик через WebSocket"""
+            metrics = advanced_monitor.get_comprehensive_metrics()
+            emit('metrics_update', metrics)
+
     def broadcast_metrics(metrics):
         """Broadcast метрик всем подключенным клиентам"""
         socketio.emit('metrics_update', metrics)
@@ -466,7 +477,14 @@ if ADVANCED_MONITORING_AVAILABLE:
     # Добавляем колбэк для трансляции метрик
     advanced_monitor.add_callback(broadcast_metrics)
 
-@app.before_first_request
+# Замена deprecated @app.before_first_request на @app.before_request с проверкой
+@app.before_request
+def before_first_request():
+    """Инициализация при первом запросе"""
+    if not hasattr(app, '_initialized'):
+        app._initialized = True
+        create_tables()
+
 def create_tables():
     """Создание таблиц базы данных"""
     if ADVANCED_MONITORING_AVAILABLE:
@@ -491,7 +509,8 @@ def create_tables():
 if __name__ == '__main__':
     logging.info("Запуск продвинутой системы мониторинга")
     
-    if ADVANCED_MONITORING_AVAILABLE:
+    if ADVANCED_MONITORING_AVAILABLE and SOCKETIO_AVAILABLE:
         socketio.run(app, host='127.0.0.1', port=5000, debug=True)
     else:
+        print("⚠️ Запуск в упрощенном режиме (без WebSocket)")
         app.run(host='127.0.0.1', port=5000, debug=True)

@@ -2,3 +2,18 @@
 2025-06-26 20:59:14,233 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 2025-06-26 20:59:14,233 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-26 21:34:30,684 - INFO - Запуск продвинутой системы мониторинга
+2025-06-26 21:34:30,698 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-26 21:34:30,699 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-26 21:34:30,701 - INFO -  * Restarting with stat
+2025-06-26 21:34:32,567 - INFO - Запуск продвинутой системы мониторинга
+2025-06-26 21:34:32,574 - WARNING -  * Debugger is active!
+2025-06-26 21:34:32,578 - INFO -  * Debugger PIN: 462-603-061
+2025-06-26 21:34:45,533 - INFO - 127.0.0.1 - - [26/Jun/2025 21:34:45] "GET /system HTTP/1.1" 200 -
+2025-06-26 21:35:17,999 - INFO - 127.0.0.1 - - [26/Jun/2025 21:35:17] "GET /system HTTP/1.1" 200 -
+2025-06-26 21:35:42,056 - INFO -  * Detected change in '/home/r00t4x/Рабочий стол/скрипты/monitoring/cleanup_project.py', reloading
+2025-06-26 21:35:42,177 - INFO -  * Restarting with stat
+2025-06-26 21:35:43,774 - INFO - Запуск продвинутой системы мониторинга
+2025-06-26 21:35:43,779 - WARNING -  * Debugger is active!
+2025-06-26 21:35:43,784 - INFO -  * Debugger PIN: 462-603-061
