@@ -152,3 +152,9 @@ jinja2.exceptions.TemplateNotFound: admin/login.html
 2025-06-26 18:16:29,353 - INFO - 127.0.0.1 - - [26/Jun/2025 18:16:29] "GET /system HTTP/1.1" 200 -
 2025-06-26 18:17:02,354 - INFO - 127.0.0.1 - - [26/Jun/2025 18:17:02] "GET /system HTTP/1.1" 200 -
 2025-06-26 18:17:20,577 - INFO - 127.0.0.1 - - [26/Jun/2025 18:17:20] "GET /system HTTP/1.1" 200 -
+2025-06-26 18:25:34,375 - INFO - Запуск приложения мониторинга
+2025-06-26 18:25:36,407 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-26 18:25:36,407 - INFO - [33mPress CTRL+C to quit[0m
+2025-06-26 18:25:45,348 - INFO - 127.0.0.1 - - [26/Jun/2025 18:25:45] "GET /system HTTP/1.1" 200 -
+2025-06-26 18:26:17,588 - INFO - 127.0.0.1 - - [26/Jun/2025 18:26:17] "GET /system HTTP/1.1" 200 -
