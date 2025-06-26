@@ -16,7 +16,7 @@ except ImportError as e:
 
 import socket
 
-# Настройка логирования
+# Настройка безопасного логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -25,6 +25,25 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+# Фильтр для исключения чувствительных данных из логов
+class SensitiveDataFilter(logging.Filter):
+    def filter(self, record):
+        # Убираем чувствительные данные из логов
+        sensitive_keywords = ['password', 'token', 'secret', 'key', 'auth']
+        message = record.getMessage().lower()
+        
+        for keyword in sensitive_keywords:
+            if keyword in message:
+                record.msg = "Sensitive data filtered from logs"
+                record.args = ()
+                break
+        
+        return True
+
+# Применяем фильтр ко всем логгерам
+for handler in logging.getLogger().handlers:
+    handler.addFilter(SensitiveDataFilter())
 
 # Создание экземпляра Flask приложения
 app = Flask(__name__)

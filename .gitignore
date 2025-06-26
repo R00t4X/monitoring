@@ -1,0 +1,166 @@
+# Виртуальные окружения
+monitoring_venv/
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Логи и временные файлы
+*.log
+monitoring.log
+logs/
+*.tmp
+*.temp
+temp/
+
+# Конфигурационные файлы с секретами
+config.ini
+.env
+secrets.json
+credentials.json
+*.key
+*.pem
+*.crt
+
+# Базы данных
+*.db
+*.sqlite
+*.sqlite3
+database.db
+
+# Резервные копии
+backup_*.json
+backups/
+*.backup
+*.bak
+
+# Системные файлы
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE и редакторы
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Пользовательские данные
+user_data/
+uploads/
+downloads/
+cache/
+.cache/
+
+# Системная информация (может содержать чувствительные данные)
+system_info.json
+server_configs/
+private_keys/
+
+# Сертификаты и ключи
+*.pem
+*.key
+*.crt
+*.csr
+ssl/
+certificates/
+
+# Мониторинг данные
+metrics/
+statistics/
+reports/
+alerts/
+
+# Тестовые файлы
+test_data/
+mock_data/
+*.test
+
+# Операционная система
+.Trash/
+.nfs*
+
+# Временные файлы Flask
+instance/
+.webassets-cache
+
+# Переменные окружения
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Локальные настройки
+local_settings.py
+settings_local.py
+
+# Пароли и токены (на всякий случай)
+*password*
+*token*
+*secret*
+*api_key*
+
+# Архивы
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Медиа файлы (если не нужны в репозитории)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+*.avi
+
+# Документация сгенерированная
+docs/_build/
+docs/build/
+
+# Coverage отчеты
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
