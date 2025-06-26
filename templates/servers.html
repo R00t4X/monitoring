@@ -3,265 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мониторинг Серверов</title>
+    <title>Серверы - Мониторинг</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 20px;
-        }
-        .nav-link {
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-        .nav-link:hover {
-            background: #5a67d8;
-        }
-        .servers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-        }
-        .server-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 20px;
-            background: #f8f9fa;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .server-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-        .server-card.warning {
-            border-left: 5px solid #ed8936;
-        }
-        .server-card.error {
-            border-left: 5px solid #e53e3e;
-        }
-        .server-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .server-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #2d3748;
-        }
-        .status {
-            padding: 5px 15px;
-            border-radius: 20px;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.8em;
-        }
-        .status.online {
-            background: #48bb78;
-        }
-        .status.offline {
-            background: #f56565;
-        }
-        .server-info {
-            margin-bottom: 15px;
-        }
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .metric-bar {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-        .metric-fill {
-            height: 100%;
-            transition: width 0.3s;
-        }
-        .cpu { background: #4299e1; }
-        .memory { background: #ed8936; }
-        .disk { background: #38b2ac; }
-        .last-check {
-            font-size: 0.9em;
-            color: #718096;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .refresh-info {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #e6fffa;
-            border-radius: 8px;
-            border: 1px solid #38b2ac;
-        }
-        .network-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 10px 0;
-            font-size: 0.9em;
-        }
-        .loading {
-            opacity: 0.6;
-            transition: opacity 0.3s;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .nav a { background: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; margin-left: 10px; }
+        .add-btn { background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-bottom: 20px; display: inline-block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .status-online { color: #28a745; font-weight: bold; }
+        .status-offline { color: #dc3545; font-weight: bold; }
+        .status-unknown { color: #6c757d; font-weight: bold; }
+        .empty-state { text-align: center; padding: 60px; color: #6c757d; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🖥️ Мониторинг Серверов</h1>
+            <h1>🖥️ Управление Серверами</h1>
             <div>
-                <a href="/" class="nav-link">🏠 Главная</a>
-                <a href="/admin" class="nav-link">⚙️ Админка</a>
+                <a href="/">🏠 Главная</a>
+                <a href="/system">📊 Система</a>
+                <a href="/admin">⚙️ Админка</a>
             </div>
         </div>
 
-        <div class="refresh-info">
-            <span>🔄 Автообновление каждые 30 секунд</span>
-            <span style="margin-left: 20px;">Последнее обновление: <span id="lastUpdate">--</span></span>
-        </div>
+        <a href="/admin/servers/add" class="add-btn">➕ Добавить сервер</a>
 
-        <div class="servers-grid" id="serversGrid">
-            {% for server in servers %}
-            <div class="server-card {{ server.status }}" data-server-id="{{ server.id }}">
-                <div class="server-header">
-                    <div class="server-name">{{ server.name }}</div>
-                    <div class="status {{ server.status }}">{{ server.status }}</div>
-                </div>
-                
-                <div class="server-info">
-                    <p><strong>IP:</strong> {{ server.ip }}:{{ server.port }}</p>
-                    <p><strong>ОС:</strong> {{ server.os }}</p>
-                    <p><strong>Расположение:</strong> {{ server.location }}</p>
-                    <p><strong>Время работы:</strong> {{ server.uptime }}</p>
-                    
-                    <div class="metric">
-                        <span>CPU: {{ server.cpu }}%</span>
-                        <div class="metric-bar">
-                            <div class="metric-fill cpu" style="width: {{ server.cpu }}%"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="metric">
-                        <span>Память: {{ server.memory }}%</span>
-                        <div class="metric-bar">
-                            <div class="metric-fill memory" style="width: {{ server.memory }}%"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="metric">
-                        <span>Диск: {{ server.disk }}%</span>
-                        <div class="metric-bar">
-                            <div class="metric-fill disk" style="width: {{ server.disk }}%"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="network-info">
-                        <div>📥 Входящий: {{ server.network_in }} KB/s</div>
-                        <div>📤 Исходящий: {{ server.network_out }} KB/s</div>
-                    </div>
-                    
-                    {% if server.alerts %}
-                    <div class="alerts">
-                        {% for alert in server.alerts %}
-                        <div class="alert-item">⚠️ {{ alert }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <div class="last-check">
-                    Последняя проверка: {{ server.last_check }}
-                </div>
-            </div>
-            {% endfor %}
+        {% if servers %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>IP адрес</th>
+                    <th>Порт</th>
+                    <th>Пользователь</th>
+                    <th>Статус</th>
+                    <th>Описание</th>
+                    <th>Последняя проверка</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for server in servers %}
+                <tr>
+                    <td>{{ server.id }}</td>
+                    <td><strong><a href="/servers/{{ server.id }}" style="color: #007bff; text-decoration: none;">{{ server.name }}</a></strong></td>
+                    <td>{{ server.ip }}</td>
+                    <td>{{ server.port }}</td>
+                    <td>{{ server.username }}</td>
+                    <td class="status-{{ server.status }}">{{ server.status }}</td>
+                    <td>{{ server.description or 'Нет описания' }}</td>
+                    <td>{{ server.last_check }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <h3>📭 Серверы не найдены</h3>
+            <p>Добавьте первый сервер для мониторинга</p>
+            <a href="/admin/servers/add" class="add-btn">➕ Добавить первый сервер</a>
         </div>
+        {% endif %}
     </div>
-
-    <script>
-        function updateServers() {
-            document.getElementById('serversGrid').classList.add('loading');
-            
-            fetch('/api/servers/update')
-                .then(response => response.json())
-                .then(data => {
-                    // Обновляем данные серверов
-                    updateServerCards(data.servers);
-                    document.getElementById('lastUpdate').textContent = data.timestamp;
-                    document.getElementById('serversGrid').classList.remove('loading');
-                })
-                .catch(error => {
-                    console.error('Ошибка обновления:', error);
-                    document.getElementById('serversGrid').classList.remove('loading');
-                });
-        }
-
-        function updateServerCards(servers) {
-            servers.forEach(server => {
-                const card = document.querySelector(`[data-server-id="${server.id}"]`);
-                if (card) {
-                    // Обновляем метрики
-                    const cpuFill = card.querySelector('.cpu');
-                    const memoryFill = card.querySelector('.memory');
-                    const diskFill = card.querySelector('.disk');
-                    
-                    if (cpuFill) cpuFill.style.width = server.cpu + '%';
-                    if (memoryFill) memoryFill.style.width = server.memory + '%';
-                    if (diskFill) diskFill.style.width = server.disk + '%';
-                    
-                    // Обновляем текст метрик
-                    const metrics = card.querySelectorAll('.metric span');
-                    if (metrics[0]) metrics[0].textContent = `CPU: ${server.cpu}%`;
-                    if (metrics[1]) metrics[1].textContent = `Память: ${server.memory}%`;
-                    if (metrics[2]) metrics[2].textContent = `Диск: ${server.disk}%`;
-                    
-                    // Обновляем сетевые метрики
-                    const networkInfo = card.querySelector('.network-info');
-                    if (networkInfo) {
-                        networkInfo.innerHTML = `
-                            <div>📥 Входящий: ${server.network_in} KB/s</div>
-                            <div>📤 Исходящий: ${server.network_out} KB/s</div>
-                        `;
-                    }
-                }
-            });
-        }
-
-        // Автообновление каждые 30 секунд
-        setInterval(updateServers, 30000);
-        
-        // Первое обновление через 5 секунд
-        setTimeout(updateServers, 5000);
-    </script>
 </body>
 </html>

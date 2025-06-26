@@ -3,47 +3,37 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
 # Виртуальные окружения
 monitoring_venv/
 venv/
 env/
+ENV/
 .venv/
-
-# Логи
-*.log
-logs/
-
-# База данных
-data/monitoring.db
-data/monitoring.db-journal
+.env/
+pyvenv.cfg
 
 # Конфигурация и секреты
 .env
 .env.local
-config.ini
-secrets.json
-*.key
-*.pem
-
-# Резервные копии данных
-data/servers_data.json
-data/backup_*.json
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Системные файлы
-.DS_Store
-Thumbs.db
-
-# Временные файлы
-*.tmp
-temp/
-.cache/
+.env.development
 .env.test
 .env.production
 config.ini
@@ -53,12 +43,14 @@ credentials.json
 *.pem
 *.crt
 *.p12
+ssh_keys/
 
-# Базы данных
-*.db
-*.sqlite
-*.sqlite3
-database/
+# База данных и логи
+data/monitoring.db
+data/monitoring.db-journal
+data/backup_*.db
+logs/*.log
+*.log
 
 # Резервные копии
 backup_*.json
@@ -89,37 +81,38 @@ Thumbs.db
 desktop.ini
 $RECYCLE.BIN/
 
-# Flask
-instance/
-.webassets-cache
-static/uploads/
+# Временные файлы
+*.tmp
+*.temp
+temp/
+.cache/
+.pytest_cache/
+
+# Сертификаты и ключи SSH
+*.pem
+*.key
+*.pub
+id_rsa*
+known_hosts
 
 # Пользовательские данные
 user_data/
 uploads/
 downloads/
-data/
-metrics/
-statistics/
-reports/
+metrics_export/
 
-# Сертификаты и ключи
-ssl/
-certificates/
-private_keys/
+# Документация сборки
+docs/_build/
+site/
 
-# Тестирование
-.pytest_cache/
+# Coverage отчеты
+htmlcov/
+.tox/
 .coverage
 .coverage.*
 coverage.xml
-htmlcov/
-.tox/
-.nox/
-
-# Документация
-docs/_build/
-site/
+*.cover
+.hypothesis/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -136,31 +129,12 @@ Pipfile.lock
 *.rar
 *.7z
 
-# Медиа файлы (если не нужны)
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.mp4
-*.avi
-*.mov
-
 # Локальные настройки
 local_settings.py
 settings_local.py
+config_local.py
 
-# Мониторинг специфичные файлы
-system_info.json
-server_configs/
-monitoring_data/
-alerts_history/
-.coverage.*
-coverage.xml
-
-# Pytest
-.pytest_cache/
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Файлы операционной системы
+Thumbs.db
+.DS_Store
+*.log
