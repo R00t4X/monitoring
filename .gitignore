@@ -1,11 +1,3 @@
-# Виртуальные окружения
-monitoring_venv/
-venv/
-env/
-ENV/
-.venv/
-.env/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -24,49 +16,55 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
+# Виртуальные окружения
+monitoring_venv/
+venv/
+env/
+ENV/
+.venv/
+.env/
+pyvenv.cfg
+
 # Логи и временные файлы
 *.log
-monitoring.log
 logs/
+log/
 *.tmp
 *.temp
 temp/
+.cache/
 
-# Конфигурационные файлы с секретами
-config.ini
+# Конфигурация и секреты
 .env
+.env.local
+.env.development
+.env.test
+.env.production
+config.ini
 secrets.json
 credentials.json
 *.key
 *.pem
 *.crt
+*.p12
 
 # Базы данных
 *.db
 *.sqlite
 *.sqlite3
-database.db
+database/
 
 # Резервные копии
 backup_*.json
 backups/
 *.backup
 *.bak
-
-# Системные файлы
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
 
 # IDE и редакторы
 .vscode/
@@ -77,61 +75,60 @@ desktop.ini
 .project
 .pydevproject
 .settings/
+*.sublime-project
+*.sublime-workspace
+
+# Системные файлы
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Flask
+instance/
+.webassets-cache
+static/uploads/
 
 # Пользовательские данные
 user_data/
 uploads/
 downloads/
-cache/
-.cache/
-
-# Системная информация (может содержать чувствительные данные)
-system_info.json
-server_configs/
-private_keys/
-
-# Сертификаты и ключи
-*.pem
-*.key
-*.crt
-*.csr
-ssl/
-certificates/
-
-# Мониторинг данные
+data/
 metrics/
 statistics/
 reports/
-alerts/
 
-# Тестовые файлы
-test_data/
-mock_data/
-*.test
+# Сертификаты и ключи
+ssl/
+certificates/
+private_keys/
 
-# Операционная система
-.Trash/
-.nfs*
+# Тестирование
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
 
-# Временные файлы Flask
-instance/
-.webassets-cache
+# Документация
+docs/_build/
+site/
 
-# Переменные окружения
-.env.local
-.env.development
-.env.test
-.env.production
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# Локальные настройки
-local_settings.py
-settings_local.py
+# pyenv
+.python-version
 
-# Пароли и токены (на всякий случай)
-*password*
-*token*
-*secret*
-*api_key*
+# pipenv
+Pipfile.lock
 
 # Архивы
 *.zip
@@ -139,21 +136,24 @@ settings_local.py
 *.rar
 *.7z
 
-# Медиа файлы (если не нужны в репозитории)
+# Медиа файлы (если не нужны)
 *.jpg
 *.jpeg
 *.png
 *.gif
 *.mp4
 *.avi
+*.mov
 
-# Документация сгенерированная
-docs/_build/
-docs/build/
+# Локальные настройки
+local_settings.py
+settings_local.py
 
-# Coverage отчеты
-htmlcov/
-.coverage
+# Мониторинг специфичные файлы
+system_info.json
+server_configs/
+monitoring_data/
+alerts_history/
 .coverage.*
 coverage.xml
 
