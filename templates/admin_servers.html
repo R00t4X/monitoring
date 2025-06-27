@@ -481,10 +481,10 @@
                     <a href="/admin/servers/{{ server.id }}/edit" class="action-btn btn-warning">
                         ✏️ Изменить
                     </a>
-                    <button onclick="testConnection({{ server.id }})" class="action-btn btn-success">
+                    <button onclick="testConnection('{{ server.id }}', event);" class="action-btn btn-success" data-server-id="{{ server.id }}">
                         🔗 Тест
                     </button>
-                    <button onclick="deleteServer({{ server.id }})" class="action-btn btn-danger">
+                    <button onclick="deleteServer('{{ server.id }}')" class="action-btn btn-danger">
                         🗑️ Удалить
                     </button>
                 </div>
@@ -522,7 +522,7 @@
             });
         }
         
-        function testConnection(serverId) {
+        function testConnection(serverId, event) {
             const button = event.target;
             const originalText = button.innerHTML;
             button.innerHTML = '⏳ Тест...';

@@ -120,7 +120,8 @@ def run_application(python_exe=None):
     print("=" * 35)
     print(f"🌐 http://127.0.0.1:{port}")
     print("👤 Админка: войдите с учетными данными")
-    print("🛑 Ctrl+C для остановки")
+    print("� Автомониторинг: каждые 60 секунд")
+    print("�🛑 Ctrl+C для остановки")
     print()
     
     # Добавляем src в путь
@@ -134,7 +135,12 @@ def run_application(python_exe=None):
 import sys
 import os
 sys.path.insert(0, '{src_path}')
-from app import app
+from app import app, scheduler
+
+# Запускаем планировщик с интервалом 60 секунд
+scheduler.start(interval=60)
+print("🔄 Автоматический мониторинг запущен (интервал: 60 секунд)")
+
 app.run(host='127.0.0.1', port={port}, debug=True)
 """
             with open('temp_run_app.py', 'w') as f:
@@ -147,7 +153,12 @@ app.run(host='127.0.0.1', port={port}, debug=True)
                     os.remove('temp_run_app.py')
         else:
             # Запускаем в текущем окружении
-            from app import app
+            from app import app, scheduler
+            
+            # Запускаем планировщик с интервалом 60 секунд
+            scheduler.start(interval=60)
+            print("🔄 Автоматический мониторинг запущен (интервал: 60 секунд)")
+            
             app.run(host='127.0.0.1', port=port, debug=True)
             
     except ImportError as e:

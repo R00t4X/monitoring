@@ -13,28 +13,42 @@ class MonitorScheduler:
         self.logger = logging.getLogger('scheduler')
         self.running = False
         self.thread = None
-        self.interval = 300  # Интервал по умолчанию 5 минут
+        self.interval = 60  # Интервал по умолчанию 60 секунд (1 минута)
         
     def start(self, interval=None):  # None означает использовать текущий интервал
         """Запуск планировщика"""
-        if self.running:
-            return
-            
-        # Обновляем интервал только если передан новый
-        if interval is not None:
-            self.interval = interval
-            
-        self.running = True
-        self.thread = threading.Thread(target=self._monitor_loop, daemon=True)
-        self.thread.start()
-        self.logger.info(f"Планировщик запущен с интервалом {self.interval} секунд")
+        try:
+            if self.running:
+                self.logger.warning("Планировщик уже запущен")
+                return
+                
+            # Обновляем интервал только если передан новый
+            if interval is not None:
+                self.interval = interval
+                
+            self.running = True
+            self.thread = threading.Thread(target=self._monitor_loop, daemon=True)
+            self.thread.start()
+            self.logger.info(f"Планировщик запущен с интервалом {self.interval} секунд")
+        except Exception as e:
+            self.logger.error(f"Ошибка запуска планировщика: {e}")
+            self.running = False
+            raise
     
     def stop(self):
         """Остановка планировщика"""
-        self.running = False
-        if self.thread:
-            self.thread.join()
-        self.logger.info("Планировщик остановлен")
+        try:
+            if not self.running:
+                self.logger.warning("Планировщик уже остановлен")
+                return
+                
+            self.running = False
+            if self.thread and self.thread.is_alive():
+                self.thread.join(timeout=5)  # Ждем максимум 5 секунд
+            self.logger.info("Планировщик остановлен")
+        except Exception as e:
+            self.logger.error(f"Ошибка остановки планировщика: {e}")
+            raise
     
     def _monitor_loop(self):
         """Основной цикл мониторинга"""

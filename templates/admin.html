@@ -93,8 +93,17 @@
         
         function updateMonitoringStatus() {
             fetch('/admin/monitoring/status')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
                     monitoringRunning = data.running;
                     const statusEl = document.getElementById('monitoringStatus');
                     const toggleBtn = document.getElementById('toggleMonitoring');
@@ -110,25 +119,53 @@
                     }
                 })
                 .catch(error => {
-                    document.getElementById('monitoringStatus').textContent = '❌ Ошибка получения статуса';
+                    console.error('Ошибка получения статуса мониторинга:', error);
+                    const statusEl = document.getElementById('monitoringStatus');
+                    const toggleBtn = document.getElementById('toggleMonitoring');
+                    
+                    statusEl.textContent = '⚠️ Ошибка получения статуса';
+                    toggleBtn.textContent = '🔄 Попробовать снова';
+                    toggleBtn.style.background = '#6c757d';
                 });
         }
         
         function toggleMonitoring() {
+            const statusEl = document.getElementById('monitoringStatus');
             const action = monitoringRunning ? 'stop' : 'start';
             
+            // Показываем статус загрузки
+            statusEl.textContent = '⏳ Выполняется операция...';
+            
             fetch(`/admin/monitoring/${action}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         updateMonitoringStatus();
-                        alert(data.message);
+                        // Показываем сообщение об успехе
+                        const successMsg = document.createElement('div');
+                        successMsg.textContent = data.message;
+                        successMsg.style.cssText = 'background: #d4edda; color: #155724; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #c3e6cb;';
+                        document.querySelector('.container').insertBefore(successMsg, document.querySelector('.container').firstChild);
+                        setTimeout(() => successMsg.remove(), 3000);
                     } else {
-                        alert('Ошибка: ' + data.error);
+                        throw new Error(data.error || 'Неизвестная ошибка');
                     }
                 })
                 .catch(error => {
-                    alert('Ошибка сети: ' + error);
+                    console.error('Ошибка переключения мониторинга:', error);
+                    updateMonitoringStatus(); // Обновляем статус
+                    
+                    // Показываем сообщение об ошибке
+                    const errorMsg = document.createElement('div');
+                    errorMsg.textContent = 'Ошибка: ' + error.message;
+                    errorMsg.style.cssText = 'background: #f8d7da; color: #721c24; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #f5c6cb;';
+                    document.querySelector('.container').insertBefore(errorMsg, document.querySelector('.container').firstChild);
+                    setTimeout(() => errorMsg.remove(), 5000);
                 });
         }
         
