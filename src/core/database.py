@@ -15,6 +15,7 @@ class DatabaseManager:
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         
         with sqlite3.connect(self.db_path) as conn:
+            # Создаем таблицу серверов
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS servers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,6 +23,9 @@ class DatabaseManager:
                     ip TEXT NOT NULL,
                     port INTEGER DEFAULT 22,
                     username TEXT DEFAULT 'root',
+                    password TEXT,
+                    ssh_key_path TEXT,
+                    ssh_key_content TEXT,
                     description TEXT,
                     status TEXT DEFAULT 'unknown',
                     last_check TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -29,6 +33,22 @@ class DatabaseManager:
                 )
             ''')
             
+            # Добавляем новые колонки если их нет
+            try:
+                conn.execute('ALTER TABLE servers ADD COLUMN password TEXT')
+            except sqlite3.OperationalError:
+                pass  # Колонка уже существует
+                
+            try:
+                conn.execute('ALTER TABLE servers ADD COLUMN ssh_key_path TEXT')
+            except sqlite3.OperationalError:
+                pass
+                
+            try:
+                conn.execute('ALTER TABLE servers ADD COLUMN ssh_key_content TEXT')
+            except sqlite3.OperationalError:
+                pass
+
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS metrics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,13 +73,16 @@ class DatabaseManager:
         """Добавление сервера"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute('''
-                INSERT INTO servers (name, ip, port, username, description)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO servers (name, ip, port, username, password, ssh_key_path, ssh_key_content, description)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 server_data['name'],
                 server_data['ip'],
                 server_data['port'],
                 server_data['username'],
+                server_data.get('password'),
+                server_data.get('ssh_key_path'),
+                server_data.get('ssh_key_content'),
                 server_data['description']
             ))
             conn.commit()

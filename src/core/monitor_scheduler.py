@@ -13,17 +13,21 @@ class MonitorScheduler:
         self.logger = logging.getLogger('scheduler')
         self.running = False
         self.thread = None
+        self.interval = 300  # Интервал по умолчанию 5 минут
         
-    def start(self, interval=300):  # 5 минут по умолчанию
+    def start(self, interval=None):  # None означает использовать текущий интервал
         """Запуск планировщика"""
         if self.running:
             return
             
+        # Обновляем интервал только если передан новый
+        if interval is not None:
+            self.interval = interval
+            
         self.running = True
-        self.interval = interval
         self.thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self.thread.start()
-        self.logger.info(f"Планировщик запущен с интервалом {interval} секунд")
+        self.logger.info(f"Планировщик запущен с интервалом {self.interval} секунд")
     
     def stop(self):
         """Остановка планировщика"""
@@ -90,3 +94,16 @@ class MonitorScheduler:
         except Exception as e:
             self.logger.error(f"Ошибка проверки сервера {server['name']}: {e}")
             self.db_manager.update_server_status(server['id'], 'offline')
+    
+    def set_interval(self, interval):
+        """Изменение интервала мониторинга"""
+        self.interval = interval
+        self.logger.info(f"Интервал мониторинга изменен на {interval} секунд")
+    
+    def get_status(self):
+        """Получение статуса планировщика"""
+        return {
+            'running': self.running,
+            'interval': self.interval,
+            'thread_alive': self.thread.is_alive() if self.thread else False
+        }

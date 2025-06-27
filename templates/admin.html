@@ -31,7 +31,8 @@
 
     <div class="nav">
         <a href="/admin" style="background: #e9ecef;">📊 Dashboard</a>
-        <a href="/servers">🖥️ Серверы</a>
+        <a href="/admin/servers">🖥️ Управление серверами</a>
+        <a href="/servers">👁️ Публичный вид</a>
         <a href="/system">📊 Мониторинг</a>
         <a href="/">🏠 Главная</a>
     </div>
@@ -56,84 +57,37 @@
             </div>
         </div>
 
-        <a href="/admin/servers/add" class="add-btn">➕ Добавить сервер</a>
-
         <div class="servers-table">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3>📊 Список серверов</h3>
-                <div>
-                    <button id="toggleMonitoring" class="btn" style="background: #17a2b8; padding: 8px 16px; border: none; border-radius: 4px; color: white; cursor: pointer; margin-right: 10px;">
-                        🔄 Управление мониторингом
-                    </button>
-                    <span id="monitoringStatus" style="font-size: 12px; color: #6c757d;">Загрузка...</span>
+            <h2>🎛️ Панель управления</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff;">
+                    <h3>�️ Управление серверами</h3>
+                    <p style="color: #6c757d; margin-bottom: 15px;">Добавление, редактирование и мониторинг серверов</p>
+                    <a href="/admin/servers" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Перейти к серверам</a>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <h3>📊 Системный мониторинг</h3>
+                    <p style="color: #6c757d; margin-bottom: 15px;">Мониторинг состояния текущей системы</p>
+                    <a href="/system" style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Мониторинг системы</a>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #6f42c1;">
+                    <h3>🔄 Автоматический мониторинг</h3>
+                    <p style="color: #6c757d; margin-bottom: 15px;" id="monitoringStatus">Загружается...</p>
+                    <button id="toggleMonitoring" style="color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">⏳ Загрузка...</button>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #fd7e14;">
+                    <h3>👁️ Публичный вид</h3>
+                    <p style="color: #6c757d; margin-bottom: 15px;">Просмотр серверов без прав администратора</p>
+                    <a href="/servers" style="background: #fd7e14; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Публичная страница</a>
                 </div>
             </div>
-            {% if servers %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Название</th>
-                        <th>IP адрес</th>
-                        <th>Статус</th>
-                        <th>Описание</th>
-                        <th>Последняя проверка</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for server in servers %}
-                    <tr>
-                        <td>{{ server.id }}</td>
-                        <td><strong>{{ server.name }}</strong></td>
-                        <td>{{ server.ip }}:{{ server.port }}</td>
-                        <td>{{ server.status }}</td>
-                        <td>{{ server.description or 'Нет описания' }}</td>
-                        <td>{{ server.last_check }}</td>
-                        <td>
-                            <button onclick="testServer({{ server.id }})" style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;">🔍 Тест</button>
-                            <a href="/admin/servers/{{ server.id }}/history" style="background: #6f42c1; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; margin-right: 5px;">📈 История</a>
-                            <a href="/admin/servers/{{ server.id }}/edit" style="background: #ffc107; color: #212529; padding: 5px 10px; text-decoration: none; border-radius: 3px; margin-right: 5px;">✏️ Изменить</a>
-                            <form method="POST" action="/admin/servers/{{ server.id }}/delete" style="display: inline;" onsubmit="return confirm('Удалить сервер {{ server.name }}?')">
-                                <button type="submit" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">🗑️ Удалить</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p style="text-align: center; color: #6c757d; padding: 40px;">
-                📭 Серверы не найдены. <a href="/admin/servers/add">Добавить первый сервер</a>
-            </p>
-            {% endif %}
         </div>
     </div>
 
     <script>
-        function testServer(serverId) {
-            const btn = event.target;
-            btn.textContent = '⏳ Тестирование...';
-            btn.disabled = true;
-            
-            fetch(`/admin/servers/${serverId}/test`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('✅ SSH подключение успешно');
-                    } else {
-                        alert('❌ Ошибка: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    alert('❌ Ошибка сети: ' + error);
-                })
-                .finally(() => {
-                    btn.textContent = '🔍 Тест';
-                    btn.disabled = false;
-                });
-        }
-        
         // Управление мониторингом
         let monitoringRunning = false;
         
@@ -183,11 +137,6 @@
         // Обновляем статус при загрузке и каждые 10 секунд
         updateMonitoringStatus();
         setInterval(updateMonitoringStatus, 10000);
-        
-        // Автообновление статистики каждые 30 секунд
-        setInterval(() => {
-            location.reload();
-        }, 30000);
     </script>
 </body>
 </html>

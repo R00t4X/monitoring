@@ -29,6 +29,10 @@
             <h1>🖥️ {{ server.name }}</h1>
             <div>
                 <a href="/servers">← Назад к серверам</a>
+                {% if not is_admin %}
+                <a href="/admin/login" style="background: #007bff; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; margin-right: 10px;">🔐 Войти в админку</a>
+                {% endif %}
+                <button onclick="testConnection()" style="background: #17a2b8; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-right: 10px;">🔗 Тест соединения</button>
                 <button onclick="refreshMetrics()" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">🔄 Обновить</button>
             </div>
         </div>
@@ -65,14 +69,32 @@
     </div>
 
     <script>
-        const serverId = {{ server.id }};
+        const serverId = "{{ server.id }}";
         
         function refreshMetrics() {
-            // Получаем текущие метрики
-            fetch(`/admin/servers/${serverId}/metrics`)
+            // Получаем текущие метрики (сначала пробуем админский API)
+            fetch(`/admin/servers/${serverId}/metrics`, {
+                credentials: 'same-origin'
+            })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.error) {
+                    if (data.error && data.error === 'Не авторизован') {
+                        // Если не авторизован, пробуем публичный API
+                        return fetch(`/api/servers/${serverId}/status`)
+                            .then(response => response.json())
+                            .then(publicData => {
+                                if (publicData.error) {
+                                    document.getElementById('metrics-content').innerHTML = 
+                                        `<div style="color: #dc3545;">❌ ${publicData.error}</div>`;
+                                } else {
+                                    displayCurrentMetrics(publicData);
+                                    if (publicData.message) {
+                                        document.getElementById('metrics-content').innerHTML += 
+                                            `<div style="color: #6c757d; font-size: 12px; margin-top: 10px;">ℹ️ ${publicData.message}</div>`;
+                                    }
+                                }
+                            });
+                    } else if (data.error) {
                         document.getElementById('metrics-content').innerHTML = 
                             `<div style="color: #dc3545;">❌ ${data.error}</div>`;
                     } else {
@@ -80,12 +102,31 @@
                     }
                 })
                 .catch(error => {
-                    document.getElementById('metrics-content').innerHTML = 
-                        `<div style="color: #dc3545;">❌ Ошибка загрузки: ${error}</div>`;
+                    // При ошибке также пробуем публичный API
+                    fetch(`/api/servers/${serverId}/status`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                document.getElementById('metrics-content').innerHTML = 
+                                    `<div style="color: #dc3545;">❌ Ошибка загрузки: ${error}</div>`;
+                            } else {
+                                displayCurrentMetrics(data);
+                                if (data.message) {
+                                    document.getElementById('metrics-content').innerHTML += 
+                                        `<div style="color: #6c757d; font-size: 12px; margin-top: 10px;">ℹ️ ${data.message}</div>`;
+                                }
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('metrics-content').innerHTML = 
+                                `<div style="color: #dc3545;">❌ Ошибка загрузки: ${error}</div>`;
+                        });
                 });
             
             // Получаем историю метрик
-            fetch(`/api/servers/${serverId}/metrics`)
+            fetch(`/api/servers/${serverId}/metrics`, {
+                credentials: 'same-origin'
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.metrics) {
@@ -125,6 +166,12 @@
                 </div>
                 <div style="margin-top: 15px; color: #6c757d; font-size: 12px;">
                     Статус: ${metrics.status}
+                    ${metrics.last_update ? `<br>Обновлено: ${new Date(metrics.last_update).toLocaleString()}` : ''}
+                    ${metrics.source ? `<br>Источник: ${
+                        metrics.source === 'database' ? 'Сохраненные данные' : 
+                        metrics.source === 'live_ssh' ? 'SSH в реальном времени' :
+                        'Информация о сервере'
+                    }` : ''}
                 </div>
             `;
             document.getElementById('metrics-content').innerHTML = html;
@@ -165,6 +212,80 @@
             document.getElementById('metrics-history').innerHTML = html;
         }
         
+        function testConnection() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Тестирование...';
+            button.disabled = true;
+            
+            fetch(`/api/servers/${serverId}/test-connection`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        button.innerHTML = '✅ Подключен';
+                        button.style.background = '#28a745';
+                        
+                        // Если получили метрики, обновляем их
+                        if (data.metrics) {
+                            displayCurrentMetrics({
+                                cpu: data.metrics.cpu,
+                                memory: data.metrics.memory,
+                                disk: data.metrics.disk,
+                                status: data.status,
+                                last_update: new Date().toISOString(),
+                                source: 'live_ssh'
+                            });
+                        }
+                        
+                        // Показываем уведомление
+                        showNotification(data.message, 'success');
+                    } else {
+                        button.innerHTML = '❌ Недоступен';
+                        button.style.background = '#dc3545';
+                        showNotification(data.message, 'error');
+                    }
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = '#17a2b8';
+                        button.disabled = false;
+                    }, 3000);
+                })
+                .catch(error => {
+                    button.innerHTML = '❌ Ошибка';
+                    button.style.background = '#dc3545';
+                    showNotification(`Ошибка тестирования: ${error}`, 'error');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = '#17a2b8';
+                        button.disabled = false;
+                    }, 3000);
+                });
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : '#dc3545'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+                max-width: 300px;
+                word-wrap: break-word;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 5000);
+        }
+
         // Загружаем метрики при загрузке страницы
         refreshMetrics();
         

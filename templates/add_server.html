@@ -57,13 +57,83 @@
             </div>
 
             <div class="form-group">
+                <label>Метод аутентификации:</label>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: inline-block; margin-right: 20px; font-weight: normal;">
+                        <input type="radio" name="auth_method" value="key" onclick="toggleAuthMethod('key')" checked style="width: auto; margin-right: 5px;">
+                        SSH ключ
+                    </label>
+                    <label style="display: inline-block; font-weight: normal;">
+                        <input type="radio" name="auth_method" value="password" onclick="toggleAuthMethod('password')" style="width: auto; margin-right: 5px;">
+                        Пароль
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" id="ssh_key_group">
+                <label for="ssh_key_content">SSH ключ (приватный):</label>
+                <textarea id="ssh_key_content" name="ssh_key_content" rows="8" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----
+MIIEpAIBAAKCAQEA...
+-----END OPENSSH PRIVATE KEY-----"></textarea>
+                <small style="color: #6c757d; font-size: 12px;">
+                    💡 Вставьте содержимое приватного SSH ключа (например, ~/.ssh/id_rsa)
+                </small>
+            </div>
+
+            <div class="form-group" id="ssh_key_path_group">
+                <label for="ssh_key_path">Путь к SSH ключу (опционально):</label>
+                <input type="text" id="ssh_key_path" name="ssh_key_path" placeholder="/path/to/private/key">
+                <small style="color: #6c757d; font-size: 12px;">
+                    💡 Альтернативно: путь к файлу приватного ключа на сервере
+                </small>
+            </div>
+
+            <div class="form-group" id="password_group" style="display: none;">
+                <label for="password">Пароль SSH:</label>
+                <input type="password" id="password" name="password" placeholder="SSH пароль">
+                <small style="color: #dc3545; font-size: 12px;">
+                    ⚠️ Использование паролей менее безопасно, чем SSH ключи
+                </small>
+            </div>
+
+            <div class="form-group">
                 <label for="description">Описание:</label>
                 <textarea id="description" name="description" rows="3" placeholder="Краткое описание сервера"></textarea>
             </div>
 
             <button type="submit" class="btn">💾 Добавить сервер</button>
-            <a href="/admin" class="btn btn-secondary" style="display: block; text-align: center; text-decoration: none;">❌ Отмена</a>
+            <a href="/admin/servers" class="btn btn-secondary" style="display: block; text-align: center; text-decoration: none;">❌ Отмена</a>
         </form>
     </div>
+
+    <script>
+        function toggleAuthMethod(method) {
+            const keyGroup = document.getElementById('ssh_key_group');
+            const keyPathGroup = document.getElementById('ssh_key_path_group');
+            const passwordGroup = document.getElementById('password_group');
+            
+            if (method === 'key') {
+                keyGroup.style.display = 'block';
+                keyPathGroup.style.display = 'block';
+                passwordGroup.style.display = 'none';
+                
+                // Очищаем пароль
+                document.getElementById('password').value = '';
+            } else {
+                keyGroup.style.display = 'none';
+                keyPathGroup.style.display = 'none';
+                passwordGroup.style.display = 'block';
+                
+                // Очищаем ключи
+                document.getElementById('ssh_key_content').value = '';
+                document.getElementById('ssh_key_path').value = '';
+            }
+        }
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleAuthMethod('key');
+        });
+    </script>
 </body>
 </html>

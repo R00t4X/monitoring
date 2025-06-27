@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Серверы - Мониторинг</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px; 
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .header h1 { 
+            color: #2c3e50; 
+            font-size: 2.5em; 
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav { 
+            display: flex; 
+            gap: 15px; 
+        }
+        
+        .nav a { 
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white; 
+            padding: 12px 20px; 
+            text-decoration: none; 
+            border-radius: 12px; 
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .nav a:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px 12px 50px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+        }
+        
+        .admin-link {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+            color: white; 
+            padding: 12px 24px; 
+            text-decoration: none; 
+            border-radius: 12px; 
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .admin-link:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.6);
+        }
+        
+        .servers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .server-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f3f4;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .server-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .server-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .server-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .server-name:hover {
+            color: #667eea;
+        }
+        
+        .server-id {
+            background: #f8f9fa;
+            color: #6c757d;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .server-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .server-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-online .status-dot { background: #28a745; }
+        .status-offline .status-dot { background: #dc3545; }
+        .status-unknown .status-dot { background: #6c757d; animation: none; }
+        
+        .status-online { color: #28a745; }
+        .status-offline { color: #dc3545; }
+        .status-unknown { color: #6c757d; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .server-description {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #6c757d;
+            border-left: 4px solid #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .server-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .last-check {
+            font-size: 12px;
+            color: #6c757d;
+            text-align: right;
+        }
+        
+        .empty-state { 
+            text-align: center; 
+            padding: 80px 20px; 
+            color: #6c757d; 
+        }
+        
+        .empty-state h3 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        
+        .empty-state p {
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+        
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            min-width: 120px;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .readonly-notice {
+            background: linear-gradient(45deg, #17a2b8, #20c997);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .header { flex-direction: column; gap: 20px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .servers-grid { grid-template-columns: 1fr; }
+            .server-info { grid-template-columns: 1fr; }
+            .stats-bar { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ Серверы Мониторинга</h1>
+            <div class="nav">
+                <a href="/">🏠 Главная</a>
+                <a href="/system">📊 Система</a>
+                <a href="/admin/login" class="admin-link">🔐 Админка</a>
+            </div>
+        </div>
+
+        <div class="readonly-notice">
+            ℹ️ Режим просмотра - Для управления серверами войдите в админку
+        </div>
+
+        {% if servers %}
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number">{{ servers|length }}</div>
+                <div class="stat-label">Всего серверов</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ servers|selectattr("status", "equalto", "online")|list|length }}</div>
+                <div class="stat-label">Онлайн</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ servers|selectattr("status", "equalto", "offline")|list|length }}</div>
+                <div class="stat-label">Офлайн</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ servers|selectattr("status", "equalto", "unknown")|list|length }}</div>
+                <div class="stat-label">Неизвестно</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Поиск серверов..." onkeyup="filterServers()">
+            </div>
+        </div>
+
+        <div class="servers-grid" id="serversGrid">
+            {% for server in servers %}
+            <div class="server-card" data-name="{{ server.name|lower }}" data-ip="{{ server.ip }}" data-description="{{ server.description|lower }}">
+                <div class="server-header">
+                    <a href="/servers/{{ server.id }}" class="server-name">{{ server.name }}</a>
+                    <div class="server-id">ID: {{ server.id }}</div>
+                </div>
+                
+                <div class="server-status status-{{ server.status }}">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        {% if server.status == 'online' %}
+                            🟢 Онлайн
+                        {% elif server.status == 'offline' %}
+                            🔴 Офлайн
+                        {% else %}
+                            ⚪ Неизвестно
+                        {% endif %}
+                    </div>
+                    <div class="last-check">{{ server.last_check }}</div>
+                </div>
+                
+                {% if server.description %}
+                <div class="server-description">
+                    💬 {{ server.description }}
+                </div>
+                {% endif %}
+                
+                <div class="server-info">
+                    <div class="info-item">
+                        <div class="info-label">IP Адрес</div>
+                        <div class="info-value">🌐 {{ server.ip }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Порт</div>
+                        <div class="info-value">🔌 {{ server.port }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Пользователь</div>
+                        <div class="info-value">👤 {{ server.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Создан</div>
+                        <div class="info-value">📅 {{ server.created_at }}</div>
+                    </div>
+                </div>
+                
+                <div class="server-actions">
+                    <a href="/servers/{{ server.id }}" class="action-btn btn-primary">
+                        📊 Подробнее
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>📭 Серверы не найдены</h3>
+            <p>В системе пока нет добавленных серверов для мониторинга</p>
+            <a href="/admin/login" class="admin-link">
+                🔐 Войти в админку для добавления серверов
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function filterServers() {
+            const searchInput = document.getElementById('searchInput');
+            const filter = searchInput.value.toLowerCase();
+            const serverCards = document.querySelectorAll('.server-card');
+            
+            serverCards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                const ip = card.getAttribute('data-ip');
+                const description = card.getAttribute('data-description');
+                
+                if (name.includes(filter) || ip.includes(filter) || description.includes(filter)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

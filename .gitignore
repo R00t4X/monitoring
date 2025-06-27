@@ -1,3 +1,15 @@
+# Credential files
+ADMIN_CREDENTIALS.txt
+.env
+*.env
+
+# Test files and temporary scripts
+test_*.py
+temp_*.py
+*_test.py
+backup/
+logs/
+
 # Python
 __pycache__/
 *.py[cod]
